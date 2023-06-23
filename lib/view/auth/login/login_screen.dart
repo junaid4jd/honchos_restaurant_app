@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void getSessionToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var headers = {
-      'Cookie': 'restaurant_session=NUZ9J67CmsrRkWPqW765evDXDBCttdgnKtygvzSR'
+      'Cookie': 'restaurant_session=$cookie'
     };
     var request = http.Request('POST', Uri.parse('http://restaurant.wettlanoneinc.com/api/get_session'));
 

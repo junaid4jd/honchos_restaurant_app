@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as dp;
 import 'package:geolocator/geolocator.dart';
 import 'package:honchos_restaurant_app/model/order_model.dart';
+import 'package:honchos_restaurant_app/model/session_model.dart';
 import 'package:honchos_restaurant_app/view/chooseDriver/choose_driver_screen.dart';
 import 'package:honchos_restaurant_app/view/home/home_screen.dart';
 import 'package:intl/intl.dart';
@@ -28,6 +29,7 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   int total = 0;
+
   List<RestaurantModel> restaurantList = [];
   String distance = '', address = '', restaurantID = '';
   double distanceInKm = 0.0;
@@ -57,6 +59,56 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
 
+
+  updateStatus(String status) async {
+
+    var headers = {
+
+      'Cookie': 'restaurant_session=$cookie'
+    };
+    var request = http.MultipartRequest('POST', Uri.parse('http://restaurant.wettlanoneinc.com/api/restaurant/order_update_status/${widget.orderModel.id}'));
+    request.fields.addAll({
+      'status': status,
+    });
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      // setState(() {
+      //   assigning = false;
+      // });
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => RestaurantHomeScreen()),
+      ).then((value) {
+
+        var snackBar = SnackBar(content: Text('Status successfully changed to $status ',style: TextStyle(color: Colors.white),),
+          backgroundColor: Colors.green,);
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+      });
+
+
+
+    }
+    else {
+      print(response.reasonPhrase);
+
+      // setState(() {
+      //   assigning = false;
+      // });
+
+      var snackBar = SnackBar(content: Text('Something went wrong. Check your internet',style: TextStyle(color: Colors.white),),
+        backgroundColor: Colors.green,);
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+    }
+
+
+  }
 
 
 
@@ -169,15 +221,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         Text('Status ',
                           style: TextStyle(color: Colors.black,
                               fontSize: 14,fontWeight: FontWeight.w600),),
-                      ],),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(widget.orderModel.status.toString(),
-                          style: TextStyle(color: Colors.blue,
-                              fontSize: 14,fontWeight: FontWeight.bold),),
+
+
+                        Container(
+                          decoration: BoxDecoration(color:
+
+                          widget.orderModel.status.toString() == 'Accepting order' || widget.orderModel.status.toString() == 'Pending' ? Colors.blue :
+                          widget.orderModel.status.toString() == 'Ready for collection' ? Colors.teal :
+                          widget.orderModel.status.toString() == 'Collected' ? Colors.deepOrangeAccent :
+                          widget.orderModel.status.toString() == 'Delivered' ? Colors.green :
+                          Colors.blue
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+
+                              widget.orderModel.status.toString(),
+                              style: TextStyle(color: Colors.white,
+                                  fontSize: 12,fontWeight: FontWeight.bold),),
+                          ),
+                        ),
+
 
                       ],),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     Text(widget.orderModel.status.toString(),
+                    //       style: TextStyle(color: Colors.blue,
+                    //           fontSize: 14,fontWeight: FontWeight.bold),),
+                    //
+                    //   ],),
 
                     SizedBox(
                       height: size.height*0.01,
@@ -185,6 +259,76 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
 
                   ],
+                ),
+              ),
+            ),
+            widget.orderModel.deliveryType == null ? Container() :
+            Padding(
+              padding: const EdgeInsets.only(top: 8,),
+              child: Container(
+                width: size.width*0.9,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                        color: lightButtonGreyColor,
+                        spreadRadius: 2,
+                        blurRadius: 3
+                    )
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+
+                      Container(
+                        width: size.width*0.8,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: size.height*0.01,
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Delivery ',
+                                    style: TextStyle(color: Colors.black,
+                                        fontSize: 14,fontWeight: FontWeight.w600),),
+
+                                  Container(
+                                    decoration: BoxDecoration(
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        widget.orderModel.deliveryType.toString(),
+                                        style: TextStyle(color: Colors.blue,
+                                            fontSize: 15,fontWeight: FontWeight.bold),),
+                                    ),
+                                  ),
+
+                                ],),
+
+                              SizedBox(
+                                height: size.height*0.01,
+                              ),
+
+
+                            ],
+                          ),
+                        ),
+                      ),
+
+
+
+
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -404,9 +548,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(widget.orderModel.address.toString(),
-                                          style: TextStyle(color: Colors.black,
-                                              fontSize: 14,fontWeight: FontWeight.w500),),
+                                        Container(
+                                          width: size.width*0.7,
+                                          child: Text(widget.orderModel.address.toString(),
+                                            style: TextStyle(color: Colors.black,
+                                                fontSize: 14,fontWeight: FontWeight.w500),),
+                                        ),
 
                                       ],),
 
@@ -622,6 +769,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               color: darkRedColor,
               strokeWidth: 1,
             )) :
+
+            (widget.orderModel.status.toString() == 'Collected' || widget.orderModel.status.toString() == 'Delivered')  ? Container() :
             Padding(
               padding: const EdgeInsets.only(left: 16,right: 16),
               child: Container(
@@ -658,25 +807,76 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                     onPressed: () {
 
+                      if(widget.orderModel.deliveryType.toString() == 'Self') {
+
+                        if(widget.orderModel.status.toString() == 'Accepting order') {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          updateStatus('Preparing your meal');
+                        } else if(widget.orderModel.status.toString() == 'Preparing your meal') {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          updateStatus('Ready for collection');
+                        } else if(widget.orderModel.status.toString() == 'Ready for collection') {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          updateStatus('Collected');
+                        }
 
 
-                      // else if(widget.orderModel.order!.status.toString() == 'Collected') {
-                      //   setState(() {
-                      //     isLoading = true;
-                      //   });
-                      //   updateStatus('Delivered');
-                      // }
+                      }
+                      else if(widget.orderModel.deliveryType.toString() == 'Driver') {
+
+                        if(widget.orderModel.status.toString() == 'Accepting order') {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          updateStatus('Preparing your meal');
+                        } else if(widget.orderModel.status.toString() == 'Preparing your meal') {
+
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => ChooseDriverScreen(orderModel: widget.orderModel,resId: restaurantID,)));
+                          // setState(() {
+                          //   isLoading = true;
+                          // });
+                          // updateStatus('Ready for collection');
+                        }
+
+
+
+                      }
+                      else {
+                        var snackBar = SnackBar(content: Text('Its an old order with no delivery type'
+                          ,style: TextStyle(color: Colors.white),),
+                          backgroundColor: Colors.green,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                      }
 
 
 
 
 
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ChooseDriverScreen(orderModel: widget.orderModel,resId: restaurantID,)));
+
+
+
+
+
 
                     }, child: Text(
-                    widget.orderModel.status.toString() == 'Accepting order' ? 'Accept' : 'Deliver'
+                    widget.orderModel.status.toString() == 'Accepting order' ? 'Accept' :
+                    widget.orderModel.status.toString() == 'Preparing your meal' && widget.orderModel.deliveryType.toString() == 'Self'  ? 'Ready' :
+                    widget.orderModel.status.toString() == 'Ready for collection' && widget.orderModel.deliveryType.toString() == 'Self'  ? 'Collect' :
+                    widget.orderModel.status.toString() == 'Preparing your meal' && widget.orderModel.deliveryType.toString() == 'Driver'  ? 'Assign Driver' :
+
+
+
+
+                    'Submit'
                     , style: buttonStyle)),
               ),
             ),

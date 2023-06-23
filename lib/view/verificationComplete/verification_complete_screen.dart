@@ -27,7 +27,7 @@ class _VerificationCompleteScreenState extends State<VerificationCompleteScreen>
 
 
     var headers = {
-      'Cookie': 'restaurant_session=TPl3YwuVvUid530f85gmWUpPBOEANG373z7S4haT'
+    'Cookie': 'restaurant_session=$cookie'
     };
     var request = http.MultipartRequest('POST', Uri.parse('https://restaurant.wettlanoneinc.com/api/restaurant_change_password'));
     request.fields.addAll({

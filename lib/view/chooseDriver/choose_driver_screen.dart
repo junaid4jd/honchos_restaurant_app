@@ -34,9 +34,9 @@ class _ChooseDriverScreenState extends State<ChooseDriverScreen> {
 
   getDrivers() async {
 
-
+    print(widget.resId.toString() + ' Driver Id');
     var headers = {
-      'Cookie': 'restaurant_session=NUZ9J67CmsrRkWPqW765evDXDBCttdgnKtygvzSR'
+      'Cookie': 'restaurant_session=$cookie'
     };
     var request = http.Request('GET', Uri.parse('http://restaurant.wettlanoneinc.com/api/restaurant/drivers'));
     request.headers.addAll(headers);
@@ -72,7 +72,7 @@ class _ChooseDriverScreenState extends State<ChooseDriverScreen> {
         });
       }
 
-      print('location Inserted');
+      // print('location Inserted');
     } else if (response.statusCode == 302) {
       setState(() {
         isLoading = false;
@@ -104,13 +104,61 @@ class _ChooseDriverScreenState extends State<ChooseDriverScreen> {
 
   updateStatus(String status, String driverId) async {
 
+    // var headers = {
+    //
+    // 'Cookie': 'restaurant_session=$cookie'
+    // };
+    // var request = http.MultipartRequest('POST', Uri.parse('http://restaurant.wettlanoneinc.com/api/restaurant/order_update_status/${widget.orderModel.id}'));
+    // request.fields.addAll({
+    //   'status': status,
+    //   'driver_id': driverId
+    // });
+    //
+    // request.headers.addAll(headers);
+    //
+    // http.StreamedResponse response = await request.send();
+    //
+    // if (response.statusCode == 200) {
+    //   setState(() {
+    //     assigning = false;
+    //   });
+    //
+    //   Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => RestaurantHomeScreen()),
+    //   ).then((value) {
+    //
+    //     var snackBar = SnackBar(content: Text('Successfully assigned to driver',style: TextStyle(color: Colors.white),),
+    //       backgroundColor: Colors.green,);
+    //     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    //
+    //   });
+    //
+    //
+    //
+    // }
+    // else {
+    //   print(response.reasonPhrase);
+    //
+    //   setState(() {
+    //     assigning = false;
+    //   });
+    //
+    //   var snackBar = SnackBar(content: Text('Something went wrong. Check your internet',style: TextStyle(color: Colors.white),),
+    //     backgroundColor: Colors.green,);
+    //   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    //
+    // }
+
+
+
     var headers = {
-      'Cookie': 'restaurant_session=NUZ9J67CmsrRkWPqW765evDXDBCttdgnKtygvzSR'
+
+      'Cookie': 'restaurant_session=$cookie'
     };
     var request = http.MultipartRequest('POST', Uri.parse('http://restaurant.wettlanoneinc.com/api/restaurant/order_update_status/${widget.orderModel.id}'));
     request.fields.addAll({
       'status': status,
-      'driver_id': driverId
     });
 
     request.headers.addAll(headers);
@@ -118,20 +166,44 @@ class _ChooseDriverScreenState extends State<ChooseDriverScreen> {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      setState(() {
-        assigning = false;
+
+
+      var request1 = http.MultipartRequest('POST', Uri.parse('http://restaurant.wettlanoneinc.com/api/restaurant/assign_driver'));
+      request1.fields.addAll({
+        'order_id': widget.orderModel.id.toString(),
+        'driver_id': driverId.toString()
       });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => RestaurantHomeScreen()),
-      ).then((value) {
+      request1.headers.addAll(headers);
 
-        var snackBar = SnackBar(content: Text('Successfully assigned to driver',style: TextStyle(color: Colors.white),),
+      http.StreamedResponse response1 = await request.send();
+
+      if (response1.statusCode == 200) {
+        setState(() {
+          assigning = false;
+        });
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => RestaurantHomeScreen()),
+        ).then((value) {
+
+          var snackBar = SnackBar(content: Text('Status successfully driver assigned ',style: TextStyle(color: Colors.white),),
+            backgroundColor: Colors.green,);
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+        });
+      }
+      else {
+        setState(() {
+          assigning = true;
+        });
+        var snackBar = SnackBar(content: Text('Something went wrong while assigning driver ',style: TextStyle(color: Colors.white),),
           backgroundColor: Colors.green,);
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }
 
-      });
+
 
 
 
@@ -139,15 +211,16 @@ class _ChooseDriverScreenState extends State<ChooseDriverScreen> {
     else {
       print(response.reasonPhrase);
 
-      setState(() {
-        assigning = false;
-      });
+      // setState(() {
+      //   assigning = false;
+      // });
 
       var snackBar = SnackBar(content: Text('Something went wrong. Check your internet',style: TextStyle(color: Colors.white),),
         backgroundColor: Colors.green,);
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
     }
+
 
 
   }
@@ -164,9 +237,11 @@ class _ChooseDriverScreenState extends State<ChooseDriverScreen> {
     getDrivers();
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -398,13 +473,19 @@ class _ChooseDriverScreenState extends State<ChooseDriverScreen> {
               height: size.height * 0.05,
             ),
           isLoading && isListEmpty == ''  || ( (restaurantList.isEmpty && isListEmpty == 'yes') || driverExisted == '' )
+          || (widget.orderModel.status.toString() != 'Accepting order' || widget.orderModel.status.toString() != 'Preparing your meal')
                 ? Container()
                 :
+
+
 
           assigning ? Center(child: CircularProgressIndicator(
             color: darkRedColor,
             strokeWidth: 2,
           )) :
+
+
+
           Padding(
               padding: const EdgeInsets.only(left: 16, right: 16),
               child: Container(
@@ -456,12 +537,20 @@ class _ChooseDriverScreenState extends State<ChooseDriverScreen> {
                             .showSnackBar(snackBar);
                       } else {
 
-                        if( widget.orderModel.status.toString() == 'Accepting order') {
-                          setState(() {
-                            assigning = true;
-                          });
-                          //
-                          updateStatus('Ready for collection', selectedRestaurantID);
+
+                        if(widget.orderModel.deliveryType.toString() == 'Driver') {
+
+                          if(widget.orderModel.status.toString() == 'Preparing your meal') {
+
+
+                            setState(() {
+                              assigning = true;
+                            });
+                            updateStatus('Waiting for driver to collect', selectedRestaurantID);
+                          }
+
+
+
                         }
 
                       }

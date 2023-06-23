@@ -73,7 +73,8 @@ class _ChosseRestaurantScreenState extends State<ChosseRestaurantScreen> {
 
   getRestaurants() async {
     var headers = {
-      'Cookie': 'restaurant_session=NUZ9J67CmsrRkWPqW765evDXDBCttdgnKtygvzSR'
+
+    'Cookie': 'restaurant_session=$cookie'
     };
     var request = http.Request('GET', Uri.parse('http://restaurant.wettlanoneinc.com/api/restaurants'));
     request.headers.addAll(headers);

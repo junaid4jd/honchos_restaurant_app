@@ -18,6 +18,7 @@ class RestaurantOrdersModel {
   String? transactionId;
   String? restaurantId;
   String? address;
+  String? deliveryType;
   List<OrdersItem>? ordersItems;
   User? user;
 
@@ -31,6 +32,7 @@ class RestaurantOrdersModel {
     this.transactionId,
     this.restaurantId,
     this.address,
+    this.deliveryType,
     this.ordersItems,
     this.user,
   });
@@ -45,6 +47,7 @@ class RestaurantOrdersModel {
     transactionId: json["transaction_id"],
     restaurantId: json["restaurant_id"],
     address: json["address"],
+    deliveryType: json["delivery_type"],
     ordersItems: json["orders_items"] == null ? [] : List<OrdersItem>.from(json["orders_items"]!.map((x) => OrdersItem.fromJson(x))),
     user: json["user"] == null ? null : User.fromJson(json["user"]),
   );
@@ -59,6 +62,7 @@ class RestaurantOrdersModel {
     "transaction_id": transactionId,
     "restaurant_id": restaurantId,
     "address": address,
+    "delivery_type": deliveryType,
     "orders_items": ordersItems == null ? [] : List<dynamic>.from(ordersItems!.map((x) => x.toJson())),
     "user": user?.toJson(),
   };
